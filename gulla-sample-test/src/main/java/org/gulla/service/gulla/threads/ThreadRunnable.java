@@ -1,4 +1,4 @@
-package org.gulla.service.gulla.test;
+package org.gulla.service.gulla.threads;
 
 public class ThreadRunnable implements Runnable  {
 
