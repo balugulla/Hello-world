@@ -1,6 +1,6 @@
 # LinkedIn Easy Apply Automation (Spring Boot + Playwright)
 
-This repository now contains a complete Java Spring Boot project (`/home/runner/work/Hello-world/Hello-world/gulla-sample-test`) that provides:
+This repository now contains a complete Java Spring Boot project (`gulla-sample-test`) that provides:
 
 - Resume and job ingestion APIs
 - Database schema for resumes, job postings, and application records
@@ -18,7 +18,7 @@ This repository now contains a complete Java Spring Boot project (`/home/runner/
 ## Run
 
 ```bash
-cd /home/runner/work/Hello-world/Hello-world/gulla-sample-test
+cd gulla-sample-test
 mvn spring-boot:run
 ```
 
@@ -47,7 +47,7 @@ If `autoApply=true` and match score meets threshold (`easyapply.match-threshold`
 
 Defined at:
 
-- `/home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/resources/schema.sql`
+- `gulla-sample-test/src/main/resources/schema.sql`
 
 Tables:
 
@@ -58,6 +58,6 @@ Tables:
 ## Tests
 
 ```bash
-cd /home/runner/work/Hello-world/Hello-world/gulla-sample-test
+cd gulla-sample-test
 mvn test
 ```
