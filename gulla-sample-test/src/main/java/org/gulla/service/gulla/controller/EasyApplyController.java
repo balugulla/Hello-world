@@ -105,6 +105,7 @@ public class EasyApplyController {
                 request.autoApply(),
                 request.linkedinEmail(),
                 request.linkedinPassword(),
-                request.headless());
+                request.headless(),
+                request.aiAnalysis());
     }
 }

@@ -23,6 +23,7 @@ public class ApplicationOrchestrationService {
     private static final String STATUS_MATCHED = "MATCHED";
     private static final String STATUS_SKIPPED_LOW_MATCH = "SKIPPED_LOW_MATCH";
     private static final String STATUS_APPLIED = "APPLIED";
+    private static final String STATUS_AI_ANALYSIS_SKIPPED = "AI_ANALYSIS_SKIPPED";
 
     private final ResumeProfileRepository resumeRepository;
     private final JobPostingRepository jobRepository;
@@ -47,20 +48,32 @@ public class ApplicationOrchestrationService {
     }
 
     @Transactional
-    public ApplyResponse evaluateAndApply(Long resumeId, Long jobId, boolean autoApply, String email, String password, boolean headless) {
-        logger.info("Evaluating application: resumeId={}, jobId={}, autoApply={}", resumeId, jobId, autoApply);
+    public ApplyResponse evaluateAndApply(Long resumeId, Long jobId, boolean autoApply, String email, String password, boolean headless, boolean aiAnalysis) {
+        logger.info("Evaluating application: resumeId={}, jobId={}, autoApply={}, aiAnalysis={}", resumeId, jobId, autoApply, aiAnalysis);
         
         ResumeProfile resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resume", resumeId));
         JobPosting job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new ResourceNotFoundException("Job Posting", jobId));
 
-        ResumeMatchResult matchResult = resumeMatchingService.score(resume, job);
-        logger.debug("Match score calculated: {} for resume {} and job {}", matchResult.score(), resumeId, jobId);
+        double matchScore;
+        String matchSummary;
+        String status;
 
-        String status = matchResult.score() >= config.getMatchThreshold() ? STATUS_MATCHED : STATUS_SKIPPED_LOW_MATCH;
+        if (aiAnalysis) {
+            ResumeMatchResult matchResult = resumeMatchingService.score(resume, job);
+            logger.debug("Match score calculated: {} for resume {} and job {}", matchResult.score(), resumeId, jobId);
+            matchScore = matchResult.score();
+            matchSummary = matchResult.summary();
+            status = matchScore >= config.getMatchThreshold() ? STATUS_MATCHED : STATUS_SKIPPED_LOW_MATCH;
+        } else {
+            logger.info("AI analysis disabled — skipping resume matching for resume {} and job {}", resumeId, jobId);
+            matchScore = 0.0;
+            matchSummary = "AI analysis skipped";
+            status = STATUS_AI_ANALYSIS_SKIPPED;
+        }
 
-        if (autoApply && STATUS_MATCHED.equals(status)) {
+        if (autoApply && (STATUS_MATCHED.equals(status) || STATUS_AI_ANALYSIS_SKIPPED.equals(status))) {
             String resolvedEmail = (email == null || email.isBlank()) ? System.getenv("LINKEDIN_EMAIL") : email;
             String resolvedPassword = (password == null || password.isBlank()) ? System.getenv("LINKEDIN_PASSWORD") : password;
 
@@ -82,12 +95,12 @@ public class ApplicationOrchestrationService {
         ApplicationRecord record = new ApplicationRecord();
         record.setResume(resume);
         record.setJob(job);
-        record.setMatchScore(matchResult.score());
-        record.setMatchSummary(matchResult.summary());
+        record.setMatchScore(matchScore);
+        record.setMatchSummary(matchSummary);
         record.setStatus(status);
         ApplicationRecord saved = applicationRepository.save(record);
 
-        logger.info("Application record created: id={}, status={}, matchScore={}", saved.getId(), status, matchResult.score());
-        return new ApplyResponse(saved.getId(), matchResult.score(), matchResult.summary(), status);
+        logger.info("Application record created: id={}, status={}, matchScore={}", saved.getId(), status, matchScore);
+        return new ApplyResponse(saved.getId(), matchScore, matchSummary, status);
     }
 }
