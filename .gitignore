@@ -1,0 +1,16 @@
+# Environment files
+.env
+.env.local
+.env.production
+
+# Credentials
+*.key
+*.pem
+secrets.yml
+
+# Database
+*.db
+
+# Never commit these
+linkedin_credentials.txt
+api_keys.txt
