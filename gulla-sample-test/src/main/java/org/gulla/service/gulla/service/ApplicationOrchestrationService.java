@@ -1,6 +1,7 @@
 package org.gulla.service.gulla.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.gulla.service.gulla.config.EasyApplyConfigProperties;
 import org.gulla.service.gulla.dto.ApplyResponse;
 import org.gulla.service.gulla.model.ApplicationRecord;
 import org.gulla.service.gulla.model.JobPosting;
@@ -8,7 +9,6 @@ import org.gulla.service.gulla.model.ResumeProfile;
 import org.gulla.service.gulla.repository.ApplicationRecordRepository;
 import org.gulla.service.gulla.repository.JobPostingRepository;
 import org.gulla.service.gulla.repository.ResumeProfileRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +24,7 @@ public class ApplicationOrchestrationService {
     private final ApplicationRecordRepository applicationRepository;
     private final ResumeMatchingService resumeMatchingService;
     private final LinkedInEasyApplyAutomationService automationService;
-    private final double autoApplyThreshold;
+    private final EasyApplyConfigProperties config;
 
     public ApplicationOrchestrationService(
             ResumeProfileRepository resumeRepository,
@@ -32,13 +32,13 @@ public class ApplicationOrchestrationService {
             ApplicationRecordRepository applicationRepository,
             ResumeMatchingService resumeMatchingService,
             LinkedInEasyApplyAutomationService automationService,
-            @Value("${easyapply.match-threshold:0.70}") double autoApplyThreshold) {
+            EasyApplyConfigProperties config) {
         this.resumeRepository = resumeRepository;
         this.jobRepository = jobRepository;
         this.applicationRepository = applicationRepository;
         this.resumeMatchingService = resumeMatchingService;
         this.automationService = automationService;
-        this.autoApplyThreshold = autoApplyThreshold;
+        this.config = config;
     }
 
     @Transactional
@@ -50,7 +50,7 @@ public class ApplicationOrchestrationService {
 
         ResumeMatchResult matchResult = resumeMatchingService.score(resume, job);
 
-        String status = matchResult.score() >= autoApplyThreshold ? STATUS_MATCHED : STATUS_SKIPPED_LOW_MATCH;
+        String status = matchResult.score() >= config.getMatchThreshold() ? STATUS_MATCHED : STATUS_SKIPPED_LOW_MATCH;
 
         if (autoApply && STATUS_MATCHED.equals(status)) {
             String resolvedEmail = (email == null || email.isBlank()) ? System.getenv("LINKEDIN_EMAIL") : email;
