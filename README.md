@@ -61,3 +61,6 @@ Tables:
 cd gulla-sample-test
 mvn test
 ```
+
+
+Security note: for production use, prefer secret managers or injected runtime secrets for LinkedIn credentials; do not log credentials or commit them to source control.

@@ -12,6 +12,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class ResumeMatchingService {
 
+    private static final double SKILL_WEIGHT = 0.6;
+    private static final double EXPERIENCE_WEIGHT = 0.25;
+    private static final double CONTEXT_WEIGHT = 0.15;
+
     public ResumeMatchResult score(ResumeProfile resume, JobPosting job) {
         Set<String> resumeSkills = normalize(resume.getSkills());
         Set<String> requiredSkills = normalize(job.getRequiredSkills());
@@ -27,7 +31,7 @@ public class ResumeMatchingService {
         long matchedTerms = requiredSkills.stream().filter(combinedText::contains).count();
         double contextScore = requiredSkills.isEmpty() ? 1.0 : (double) matchedTerms / requiredSkills.size();
 
-        double finalScore = (skillScore * 0.6) + (experienceScore * 0.25) + (contextScore * 0.15);
+        double finalScore = (skillScore * SKILL_WEIGHT) + (experienceScore * EXPERIENCE_WEIGHT) + (contextScore * CONTEXT_WEIGHT);
         double normalizedScore = Math.round(finalScore * 100.0) / 100.0;
 
         String matchedSkills = requiredSkills.stream()

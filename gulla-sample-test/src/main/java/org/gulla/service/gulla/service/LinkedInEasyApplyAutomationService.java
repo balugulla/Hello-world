@@ -11,7 +11,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class LinkedInEasyApplyAutomationService {
 
-    private static final double DEFAULT_TIMEOUT_MS = 15_000;
+    private static final int DEFAULT_TIMEOUT_MS = 15_000;
+    private static final String FULL_NAME_LABEL = "Full name";
+    private static final String WORK_EXPERIENCE_LABEL = "Work experience";
+    private static final String SUMMARY_LABEL = "Summary";
 
     public void apply(JobPosting job, ResumeProfile resume, String email, String password, boolean headless) {
         try (Playwright playwright = Playwright.create();
@@ -49,10 +52,10 @@ public class LinkedInEasyApplyAutomationService {
 
     private void completeAndSubmit(Page page, ResumeProfile resume) {
         try {
-            page.getByLabel("Full name").first().waitFor();
-            page.getByLabel("Full name").first().fill(resume.getCandidateName());
-            page.getByLabel("Work experience").first().fill(String.valueOf(resume.getYearsExperience()));
-            page.getByLabel("Summary").first().fill(resume.getSummary());
+            page.getByLabel(FULL_NAME_LABEL).first().waitFor();
+            page.getByLabel(FULL_NAME_LABEL).first().fill(resume.getCandidateName());
+            page.getByLabel(WORK_EXPERIENCE_LABEL).first().fill(String.valueOf(resume.getYearsExperience()));
+            page.getByLabel(SUMMARY_LABEL).first().fill(resume.getSummary());
             page.locator("button[aria-label='Submit application']").first().waitFor();
             page.locator("button[aria-label='Submit application']").first().click();
         } catch (RuntimeException ex) {

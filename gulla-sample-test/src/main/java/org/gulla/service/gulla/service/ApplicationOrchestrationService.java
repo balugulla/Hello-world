@@ -15,6 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ApplicationOrchestrationService {
 
+    private static final String STATUS_MATCHED = "MATCHED";
+    private static final String STATUS_SKIPPED_LOW_MATCH = "SKIPPED_LOW_MATCH";
+    private static final String STATUS_APPLIED = "APPLIED";
+
     private final ResumeProfileRepository resumeRepository;
     private final JobPostingRepository jobRepository;
     private final ApplicationRecordRepository applicationRepository;
@@ -46,9 +50,9 @@ public class ApplicationOrchestrationService {
 
         ResumeMatchResult matchResult = resumeMatchingService.score(resume, job);
 
-        String status = matchResult.score() >= autoApplyThreshold ? "MATCHED" : "SKIPPED_LOW_MATCH";
+        String status = matchResult.score() >= autoApplyThreshold ? STATUS_MATCHED : STATUS_SKIPPED_LOW_MATCH;
 
-        if (autoApply && "MATCHED".equals(status)) {
+        if (autoApply && STATUS_MATCHED.equals(status)) {
             String resolvedEmail = (email == null || email.isBlank()) ? System.getenv("LINKEDIN_EMAIL") : email;
             String resolvedPassword = (password == null || password.isBlank()) ? System.getenv("LINKEDIN_PASSWORD") : password;
 
@@ -59,7 +63,7 @@ public class ApplicationOrchestrationService {
                 throw new IllegalArgumentException("LinkedIn password is required when autoApply is true");
             }
             automationService.apply(job, resume, resolvedEmail, resolvedPassword, headless);
-            status = "APPLIED";
+            status = STATUS_APPLIED;
         }
 
         ApplicationRecord record = new ApplicationRecord();

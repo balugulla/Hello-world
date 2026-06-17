@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
@@ -37,7 +38,7 @@ public class ApplicationRecord {
     private String status;
 
     @Column(nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     public Long getId() {
         return id;
@@ -85,5 +86,12 @@ public class ApplicationRecord {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
     }
 }
