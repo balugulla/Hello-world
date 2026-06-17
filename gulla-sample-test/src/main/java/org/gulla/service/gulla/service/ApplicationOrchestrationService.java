@@ -49,10 +49,16 @@ public class ApplicationOrchestrationService {
         String status = matchResult.score() >= autoApplyThreshold ? "MATCHED" : "SKIPPED_LOW_MATCH";
 
         if (autoApply && "MATCHED".equals(status)) {
-            if (email == null || email.isBlank() || password == null || password.isBlank()) {
-                throw new IllegalArgumentException("LinkedIn credentials are required when autoApply is true");
+            String resolvedEmail = (email == null || email.isBlank()) ? System.getenv("LINKEDIN_EMAIL") : email;
+            String resolvedPassword = (password == null || password.isBlank()) ? System.getenv("LINKEDIN_PASSWORD") : password;
+
+            if (resolvedEmail == null || resolvedEmail.isBlank()) {
+                throw new IllegalArgumentException("LinkedIn email is required when autoApply is true");
             }
-            automationService.apply(job, resume, email, password, headless);
+            if (resolvedPassword == null || resolvedPassword.isBlank()) {
+                throw new IllegalArgumentException("LinkedIn password is required when autoApply is true");
+            }
+            automationService.apply(job, resume, resolvedEmail, resolvedPassword, headless);
             status = "APPLIED";
         }
 

@@ -59,7 +59,7 @@ public class EasyApplyController {
     }
 
     @PostMapping("/applications/evaluate")
-    public ApplyResponse evaluateAndApply(@RequestBody ApplyRequest request) {
+    public ApplyResponse evaluateAndApply(@Valid @RequestBody ApplyRequest request) {
         return orchestrationService.evaluateAndApply(
                 request.resumeId(),
                 request.jobId(),
