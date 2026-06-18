@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="org.gulla.service.gulla.service.ResumeMatchingServiceTest" time="0.053" tests="2" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="org.gulla.service.gulla.service.ApplicationOrchestrationServiceTest" time="1.803" tests="3" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -7,6 +7,7 @@
     <property name="java.vm.vendor" value="Eclipse Adoptium"/>
     <property name="sun.arch.data.model" value="64"/>
     <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.timezone" value="Etc/UTC"/>
     <property name="os.name" value="Linux"/>
     <property name="java.vm.specification.version" value="17"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
@@ -52,6 +53,20 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="shouldProduceHighScoreWhenSkillsAndExperienceMatch" classname="org.gulla.service.gulla.service.ResumeMatchingServiceTest" time="0.03"/>
-  <testcase name="shouldPenalizeLowSkillOverlap" classname="org.gulla.service.gulla.service.ResumeMatchingServiceTest" time="0.003"/>
+  <testcase name="whenAiAnalysisIsTrue_shouldRunMatchingAndReturnMatchedStatus" classname="org.gulla.service.gulla.service.ApplicationOrchestrationServiceTest" time="1.771">
+    <system-out><![CDATA[21:53:40.411 [main] INFO org.gulla.service.gulla.service.ApplicationOrchestrationService -- Evaluating application: resumeId=1, jobId=1, autoApply=false, aiAnalysis=true
+21:53:40.451 [main] INFO org.gulla.service.gulla.service.ApplicationOrchestrationService -- Application record created: id=null, status=MATCHED, matchScore=0.95
+]]></system-out>
+  </testcase>
+  <testcase name="whenAiAnalysisIsFalse_shouldSkipMatchingAndReturnAiAnalysisSkippedStatus" classname="org.gulla.service.gulla.service.ApplicationOrchestrationServiceTest" time="0.01">
+    <system-out><![CDATA[21:53:40.471 [main] INFO org.gulla.service.gulla.service.ApplicationOrchestrationService -- Evaluating application: resumeId=1, jobId=1, autoApply=false, aiAnalysis=false
+21:53:40.472 [main] INFO org.gulla.service.gulla.service.ApplicationOrchestrationService -- AI analysis disabled — skipping resume matching for resume 1 and job 1
+21:53:40.473 [main] INFO org.gulla.service.gulla.service.ApplicationOrchestrationService -- Application record created: id=null, status=AI_ANALYSIS_SKIPPED, matchScore=0.0
+]]></system-out>
+  </testcase>
+  <testcase name="whenAiAnalysisIsTrue_andScoreBelowThreshold_shouldReturnSkippedLowMatchStatus" classname="org.gulla.service.gulla.service.ApplicationOrchestrationServiceTest" time="0.008">
+    <system-out><![CDATA[21:53:40.482 [main] INFO org.gulla.service.gulla.service.ApplicationOrchestrationService -- Evaluating application: resumeId=1, jobId=1, autoApply=false, aiAnalysis=true
+21:53:40.483 [main] INFO org.gulla.service.gulla.service.ApplicationOrchestrationService -- Application record created: id=null, status=SKIPPED_LOW_MATCH, matchScore=0.5
+]]></system-out>
+  </testcase>
 </testsuite>
