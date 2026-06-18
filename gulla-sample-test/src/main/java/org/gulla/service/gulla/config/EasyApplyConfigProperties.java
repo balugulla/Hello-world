@@ -10,6 +10,7 @@ public class EasyApplyConfigProperties {
     private double matchThreshold = 0.70;
     private int automationTimeoutMs = 15000;
     private int maxRetryAttempts = 3;
+    private String candidateDataRoot = "candidate-data";
     private ApiConfig api = new ApiConfig();
 
     public double getMatchThreshold() {
@@ -34,6 +35,14 @@ public class EasyApplyConfigProperties {
 
     public void setMaxRetryAttempts(int maxRetryAttempts) {
         this.maxRetryAttempts = maxRetryAttempts;
+    }
+
+    public String getCandidateDataRoot() {
+        return candidateDataRoot;
+    }
+
+    public void setCandidateDataRoot(String candidateDataRoot) {
+        this.candidateDataRoot = candidateDataRoot;
     }
 
     public ApiConfig getApi() {

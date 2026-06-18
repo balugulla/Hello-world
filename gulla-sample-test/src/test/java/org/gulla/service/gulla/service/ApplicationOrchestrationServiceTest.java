@@ -32,6 +32,8 @@ class ApplicationOrchestrationServiceTest {
     private ResumeMatchingService resumeMatchingService;
     @Mock
     private LinkedInEasyApplyAutomationService automationService;
+    @Mock
+    private CandidateProfileService candidateProfileService;
 
     private EasyApplyConfigProperties config;
     private ApplicationOrchestrationService service;
@@ -42,7 +44,7 @@ class ApplicationOrchestrationServiceTest {
         config.setMatchThreshold(0.70);
         service = new ApplicationOrchestrationService(
                 resumeRepository, jobRepository, applicationRepository,
-                resumeMatchingService, automationService, config);
+                resumeMatchingService, automationService, candidateProfileService, config);
 
         ResumeProfile resume = new ResumeProfile();
         resume.setCandidateName("Test Candidate");
@@ -63,16 +65,22 @@ class ApplicationOrchestrationServiceTest {
             var rec = inv.getArgument(0, org.gulla.service.gulla.model.ApplicationRecord.class);
             return rec;
         });
+        when(candidateProfileService.resolveExecutionContext(any(), any(), any(), any(), any()))
+                .thenReturn(new CandidateProfileService.CandidateExecutionContext(null, null, true, true));
     }
 
     @Test
     void whenAiAnalysisIsFalse_shouldSkipMatchingAndReturnAiAnalysisSkippedStatus() {
-        ApplyResponse response = service.evaluateAndApply(1L, 1L, false, null, null, false, false);
+        when(candidateProfileService.resolveExecutionContext(any(), any(), any(), any(), any()))
+                .thenReturn(new CandidateProfileService.CandidateExecutionContext(null, null, true, false));
+
+        ApplyResponse response = service.evaluateAndApply(1L, 1L, false, null, null, null, null);
 
         assertEquals("AI_ANALYSIS_SKIPPED", response.status());
         assertEquals(0.0, response.matchScore());
         assertEquals("AI analysis skipped", response.matchSummary());
         verifyNoInteractions(resumeMatchingService);
+        verify(candidateProfileService).writeApplicationConfirmation(any(), any(), any());
     }
 
     @Test
@@ -80,11 +88,12 @@ class ApplicationOrchestrationServiceTest {
         when(resumeMatchingService.score(any(), any()))
                 .thenReturn(new ResumeMatchResult(0.95, "Matched 2/2 required skills"));
 
-        ApplyResponse response = service.evaluateAndApply(1L, 1L, false, null, null, false, true);
+        ApplyResponse response = service.evaluateAndApply(1L, 1L, false, null, null, null, true);
 
         assertEquals("MATCHED", response.status());
         assertEquals(0.95, response.matchScore());
         verify(resumeMatchingService, times(1)).score(any(), any());
+        verify(candidateProfileService).writeApplicationConfirmation(any(), any(), any());
     }
 
     @Test
@@ -92,7 +101,7 @@ class ApplicationOrchestrationServiceTest {
         when(resumeMatchingService.score(any(), any()))
                 .thenReturn(new ResumeMatchResult(0.50, "Low match"));
 
-        ApplyResponse response = service.evaluateAndApply(1L, 1L, false, null, null, false, true);
+        ApplyResponse response = service.evaluateAndApply(1L, 1L, false, null, null, null, true);
 
         assertEquals("SKIPPED_LOW_MATCH", response.status());
         verify(resumeMatchingService, times(1)).score(any(), any());
