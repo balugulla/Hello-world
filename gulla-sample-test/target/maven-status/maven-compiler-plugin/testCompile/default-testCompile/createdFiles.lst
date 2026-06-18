@@ -1,3 +1,4 @@
-org/gulla/service/gulla/service/ApplicationOrchestrationServiceTest.class
 org/gulla/service/gulla/service/ResumeMatchingServiceTest.class
+org/gulla/service/gulla/service/CandidateProfileServiceTest.class
+org/gulla/service/gulla/service/ApplicationOrchestrationServiceTest.class
 org/gulla/service/gulla/test/AppTest.class

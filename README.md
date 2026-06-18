@@ -7,6 +7,7 @@ A production-ready Spring Boot application for automating LinkedIn Easy Apply jo
 ## 🚀 Features
 
 - **Resume & Job Management**: REST APIs for storing and managing candidate resumes and job postings
+- **Candidate Workspaces**: Each candidate gets a separate folder, config file template, and confirmation history
 - **Intelligent Matching**: AI-powered resume-to-job matching with configurable scoring thresholds
 - **Browser Automation**: Playwright-based LinkedIn Easy Apply automation with retry logic
 - **Security**: API key authentication, encrypted credentials, secure configuration management
@@ -186,6 +187,7 @@ java -jar app.jar --spring.profiles.active=prod
 | `easyapply.match-threshold` | Minimum score for auto-apply | 0.70 | No |
 | `easyapply.automation-timeout-ms` | Playwright timeout | 15000 | No |
 | `easyapply.max-retry-attempts` | Retry count for failures | 3 | No |
+| `easyapply.candidate-data-root` | Base folder for candidate-specific configs and confirmations | `candidate-data` | No |
 | `easyapply.api.key` | API key for authentication | - | Yes (prod) |
 | `DATABASE_URL` | PostgreSQL connection URL | - | Yes (prod) |
 | `DATABASE_USERNAME` | Database username | - | Yes (prod) |
@@ -236,6 +238,35 @@ Content-Type: application/json
   "yearsExperience": 5
 }
 ```
+
+Creating a resume now also initializes a candidate workspace under `easyapply.candidate-data-root`, for example:
+
+```text
+candidate-data/
+  1-john-doe/
+    candidate-profile.json
+    candidate-config.properties
+    confirmations/
+```
+
+Update `candidate-config.properties` with that candidate's preferred automation defaults before selecting the profile.
+
+#### List Candidate Profiles
+```http
+GET /api/v1/candidate-profiles
+```
+
+#### Select Active Candidate Profile
+```http
+POST /api/v1/candidate-profiles/select
+Content-Type: application/json
+
+{
+  "resumeId": 1
+}
+```
+
+After selection, the service writes a profile-selection confirmation file and only allows applications for that selected candidate. Each application attempt also writes a confirmation JSON file into the candidate's `confirmations/` folder.
 
 #### Create Job Posting
 ```http

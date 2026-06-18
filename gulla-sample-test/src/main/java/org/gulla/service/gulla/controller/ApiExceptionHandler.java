@@ -2,6 +2,7 @@ package org.gulla.service.gulla.controller;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.gulla.service.gulla.exception.AutomationException;
+import org.gulla.service.gulla.exception.InvalidCandidateProfileException;
 import org.gulla.service.gulla.exception.InvalidCredentialsException;
 import org.gulla.service.gulla.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class ApiExceptionHandler {
         return createErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
     }
 
-    @ExceptionHandler({IllegalArgumentException.class, InvalidCredentialsException.class})
+    @ExceptionHandler({IllegalArgumentException.class, InvalidCredentialsException.class, InvalidCandidateProfileException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, Object> handleBadRequest(Exception ex) {
         logger.warn("Bad request: {}", ex.getMessage());

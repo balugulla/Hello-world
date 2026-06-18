@@ -8,7 +8,7 @@ public record ApplyRequest(
         boolean autoApply,
         String linkedinEmail,
         String linkedinPassword,
-        boolean headless,
-        boolean aiAnalysis
+        Boolean headless,
+        Boolean aiAnalysis
 ) {
 }

@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.gulla.service.gulla.dto.ApplyRequest;
 import org.gulla.service.gulla.dto.ApplyResponse;
+import org.gulla.service.gulla.dto.CandidateProfileResponse;
+import org.gulla.service.gulla.dto.CandidateProfileSelectionRequest;
 import org.gulla.service.gulla.dto.JobPostingRequest;
 import org.gulla.service.gulla.dto.ResumeRequest;
 import org.gulla.service.gulla.model.JobPosting;
@@ -16,14 +18,18 @@ import org.gulla.service.gulla.model.ResumeProfile;
 import org.gulla.service.gulla.repository.JobPostingRepository;
 import org.gulla.service.gulla.repository.ResumeProfileRepository;
 import org.gulla.service.gulla.service.ApplicationOrchestrationService;
+import org.gulla.service.gulla.service.CandidateProfileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -35,14 +41,17 @@ public class EasyApplyController {
     private final ResumeProfileRepository resumeRepository;
     private final JobPostingRepository jobRepository;
     private final ApplicationOrchestrationService orchestrationService;
+    private final CandidateProfileService candidateProfileService;
 
     public EasyApplyController(
             ResumeProfileRepository resumeRepository,
             JobPostingRepository jobRepository,
-            ApplicationOrchestrationService orchestrationService) {
+            ApplicationOrchestrationService orchestrationService,
+            CandidateProfileService candidateProfileService) {
         this.resumeRepository = resumeRepository;
         this.jobRepository = jobRepository;
         this.orchestrationService = orchestrationService;
+        this.candidateProfileService = candidateProfileService;
     }
 
     @Operation(summary = "Create a new resume profile", description = "Store a candidate's resume information for future job applications")
@@ -61,8 +70,23 @@ public class EasyApplyController {
         resume.setSkills(request.skills());
         resume.setYearsExperience(request.yearsExperience());
         ResumeProfile saved = resumeRepository.save(resume);
+        candidateProfileService.registerCandidateProfile(saved);
         logger.info("Resume created with id: {}", saved.getId());
         return saved;
+    }
+
+    @Operation(summary = "List candidate profiles", description = "Show candidate-specific profile folders and whether each profile is active")
+    @GetMapping("/candidate-profiles")
+    public List<CandidateProfileResponse> listCandidateProfiles() {
+        return candidateProfileService.listProfiles(resumeRepository.findAll());
+    }
+
+    @Operation(summary = "Select active candidate profile", description = "Activates a candidate profile so only that candidate's configuration is used for applications")
+    @PostMapping("/candidate-profiles/select")
+    public CandidateProfileResponse selectCandidateProfile(@Valid @RequestBody CandidateProfileSelectionRequest request) {
+        ResumeProfile resume = resumeRepository.findById(request.resumeId())
+                .orElseThrow(() -> new org.gulla.service.gulla.exception.ResourceNotFoundException("Resume", request.resumeId()));
+        return candidateProfileService.activateProfile(resume);
     }
 
     @Operation(summary = "Create a new job posting", description = "Store a LinkedIn job posting for evaluation and application")

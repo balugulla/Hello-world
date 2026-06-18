@@ -6,9 +6,12 @@
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/controller/EasyApplyController.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/dto/ApplyRequest.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/dto/ApplyResponse.java
+/home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/dto/CandidateProfileResponse.java
+/home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/dto/CandidateProfileSelectionRequest.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/dto/JobPostingRequest.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/dto/ResumeRequest.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/exception/AutomationException.java
+/home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/exception/InvalidCandidateProfileException.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/exception/InvalidCredentialsException.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/exception/ResourceNotFoundException.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/model/ApplicationRecord.java
@@ -19,6 +22,7 @@
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/repository/JobPostingRepository.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/repository/ResumeProfileRepository.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/service/ApplicationOrchestrationService.java
+/home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/service/CandidateProfileService.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/service/LinkedInEasyApplyAutomationService.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/service/ResumeMatchResult.java
 /home/runner/work/Hello-world/Hello-world/gulla-sample-test/src/main/java/org/gulla/service/gulla/service/ResumeMatchingService.java

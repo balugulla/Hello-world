@@ -30,6 +30,7 @@ public class ApplicationOrchestrationService {
     private final ApplicationRecordRepository applicationRepository;
     private final ResumeMatchingService resumeMatchingService;
     private final LinkedInEasyApplyAutomationService automationService;
+    private final CandidateProfileService candidateProfileService;
     private final EasyApplyConfigProperties config;
 
     public ApplicationOrchestrationService(
@@ -38,29 +39,33 @@ public class ApplicationOrchestrationService {
             ApplicationRecordRepository applicationRepository,
             ResumeMatchingService resumeMatchingService,
             LinkedInEasyApplyAutomationService automationService,
+            CandidateProfileService candidateProfileService,
             EasyApplyConfigProperties config) {
         this.resumeRepository = resumeRepository;
         this.jobRepository = jobRepository;
         this.applicationRepository = applicationRepository;
         this.resumeMatchingService = resumeMatchingService;
         this.automationService = automationService;
+        this.candidateProfileService = candidateProfileService;
         this.config = config;
     }
 
     @Transactional
-    public ApplyResponse evaluateAndApply(Long resumeId, Long jobId, boolean autoApply, String email, String password, boolean headless, boolean aiAnalysis) {
-        logger.info("Evaluating application: resumeId={}, jobId={}, autoApply={}, aiAnalysis={}", resumeId, jobId, autoApply, aiAnalysis);
+    public ApplyResponse evaluateAndApply(Long resumeId, Long jobId, boolean autoApply, String email, String password, Boolean headless, Boolean aiAnalysis) {
+        logger.info("Evaluating application: resumeId={}, jobId={}, autoApply={}", resumeId, jobId, autoApply);
         
         ResumeProfile resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resume", resumeId));
         JobPosting job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new ResourceNotFoundException("Job Posting", jobId));
+        CandidateProfileService.CandidateExecutionContext candidateContext =
+                candidateProfileService.resolveExecutionContext(resume, email, password, headless, aiAnalysis);
 
         double matchScore;
         String matchSummary;
         String status;
 
-        if (aiAnalysis) {
+        if (candidateContext.aiAnalysis()) {
             ResumeMatchResult matchResult = resumeMatchingService.score(resume, job);
             logger.debug("Match score calculated: {} for resume {} and job {}", matchResult.score(), resumeId, jobId);
             matchScore = matchResult.score();
@@ -74,8 +79,8 @@ public class ApplicationOrchestrationService {
         }
 
         if (autoApply && (STATUS_MATCHED.equals(status) || STATUS_AI_ANALYSIS_SKIPPED.equals(status))) {
-            String resolvedEmail = (email == null || email.isBlank()) ? System.getenv("LINKEDIN_EMAIL") : email;
-            String resolvedPassword = (password == null || password.isBlank()) ? System.getenv("LINKEDIN_PASSWORD") : password;
+            String resolvedEmail = candidateContext.linkedinEmail();
+            String resolvedPassword = candidateContext.linkedinPassword();
 
             if (resolvedEmail == null || resolvedEmail.isBlank()) {
                 logger.error("LinkedIn email not provided for auto-apply");
@@ -87,7 +92,7 @@ public class ApplicationOrchestrationService {
             }
             
             logger.info("Initiating auto-apply for job {} with resume {}", jobId, resumeId);
-            automationService.apply(job, resume, resolvedEmail, resolvedPassword, headless);
+            automationService.apply(job, resume, resolvedEmail, resolvedPassword, candidateContext.headless());
             status = STATUS_APPLIED;
             logger.info("Auto-apply completed successfully for job {} with resume {}", jobId, resumeId);
         }
@@ -99,6 +104,7 @@ public class ApplicationOrchestrationService {
         record.setMatchSummary(matchSummary);
         record.setStatus(status);
         ApplicationRecord saved = applicationRepository.save(record);
+        candidateProfileService.writeApplicationConfirmation(resume, job, saved);
 
         logger.info("Application record created: id={}, status={}, matchScore={}", saved.getId(), status, matchScore);
         return new ApplyResponse(saved.getId(), matchScore, matchSummary, status);
