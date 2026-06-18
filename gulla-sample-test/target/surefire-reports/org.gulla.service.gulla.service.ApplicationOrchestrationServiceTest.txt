@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: org.gulla.service.gulla.service.ApplicationOrchestrationServiceTest
 -------------------------------------------------------------------------------
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.803 s -- in org.gulla.service.gulla.service.ApplicationOrchestrationServiceTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.568 s -- in org.gulla.service.gulla.service.ApplicationOrchestrationServiceTest
