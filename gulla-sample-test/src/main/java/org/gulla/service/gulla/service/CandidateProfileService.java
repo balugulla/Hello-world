@@ -46,7 +46,7 @@ public class CandidateProfileService {
     public CandidateProfileResponse registerCandidateProfile(ResumeProfile resume) {
         try {
             Path candidateDirectory = getCandidateDirectory(resume);
-            Files.createDirectories(candidateDirectory.resolve(CONFIRMATIONS_DIRECTORY));
+            ensureCandidateProfileStructure(candidateDirectory, resume);
             writeJson(candidateDirectory.resolve(PROFILE_DETAILS_FILE), Map.of(
                     "resumeId", resume.getId(),
                     "candidateName", resume.getCandidateName(),
@@ -66,7 +66,7 @@ public class CandidateProfileService {
         Long activeResumeId = readActiveProfile().map(ActiveProfile::resumeId).orElse(null);
         return resumes.stream()
                 .map(resume -> {
-                    registerCandidateProfile(resume);
+                    ensureCandidateProfileStructure(getCandidateDirectory(resume), resume);
                     return toResponse(resume, resume.getId().equals(activeResumeId));
                 })
                 .toList();
@@ -112,8 +112,8 @@ public class CandidateProfileService {
 
         CandidateConfig candidateConfig = readCandidateConfig(resume);
         return new CandidateExecutionContext(
-                firstNonBlank(email, candidateConfig.linkedinEmail()),
-                firstNonBlank(password, candidateConfig.linkedinPassword()),
+                firstNonBlank(email, candidateConfig.linkedinEmail(), System.getenv("LINKEDIN_EMAIL")),
+                firstNonBlank(password, candidateConfig.linkedinPassword(), System.getenv("LINKEDIN_PASSWORD")),
                 headless != null ? headless : candidateConfig.headless(),
                 aiAnalysis != null ? aiAnalysis : candidateConfig.aiAnalysis()
         );
@@ -146,9 +146,9 @@ public class CandidateProfileService {
     }
 
     private CandidateConfig readCandidateConfig(ResumeProfile resume) {
-        registerCandidateProfile(resume);
-        Properties properties = new Properties();
         Path configFile = getCandidateDirectory(resume).resolve(PROFILE_CONFIG_FILE);
+        ensureCandidateProfileStructure(getCandidateDirectory(resume), resume);
+        Properties properties = new Properties();
         try (InputStream inputStream = Files.newInputStream(configFile)) {
             properties.load(inputStream);
             return new CandidateConfig(
@@ -202,6 +202,15 @@ public class CandidateProfileService {
         }
     }
 
+    private void ensureCandidateProfileStructure(Path candidateDirectory, ResumeProfile resume) {
+        try {
+            Files.createDirectories(candidateDirectory.resolve(CONFIRMATIONS_DIRECTORY));
+            createConfigTemplateIfMissing(candidateDirectory.resolve(PROFILE_CONFIG_FILE), resume);
+        } catch (IOException ex) {
+            throw new UncheckedIOException("Failed to initialize candidate profile files", ex);
+        }
+    }
+
     private void writeJson(Path path, Object payload) throws IOException {
         Files.createDirectories(path.getParent());
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), payload);
@@ -228,8 +237,13 @@ public class CandidateProfileService {
         return DateTimeFormatter.ISO_INSTANT.format(instant).replace(":", "-");
     }
 
-    private String firstNonBlank(String primary, String fallback) {
-        return StringUtils.hasText(primary) ? primary.trim() : clean(fallback);
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (StringUtils.hasText(value)) {
+                return value.trim();
+            }
+        }
+        return null;
     }
 
     private String clean(String value) {

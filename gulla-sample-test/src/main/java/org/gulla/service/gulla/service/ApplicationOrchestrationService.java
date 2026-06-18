@@ -83,13 +83,6 @@ public class ApplicationOrchestrationService {
             String resolvedPassword = candidateContext.linkedinPassword();
 
             if (resolvedEmail == null || resolvedEmail.isBlank()) {
-                resolvedEmail = System.getenv("LINKEDIN_EMAIL");
-            }
-            if (resolvedPassword == null || resolvedPassword.isBlank()) {
-                resolvedPassword = System.getenv("LINKEDIN_PASSWORD");
-            }
-
-            if (resolvedEmail == null || resolvedEmail.isBlank()) {
                 logger.error("LinkedIn email not provided for auto-apply");
                 throw new InvalidCredentialsException("LinkedIn email is required when autoApply is true");
             }
